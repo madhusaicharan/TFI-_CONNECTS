@@ -69,8 +69,8 @@ function createTransporter() {
     port:   parseInt(SMTP_PORT, 10),
     secure: SMTP_SECURE === 'true', // false → STARTTLS on port 587
     auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
+      user: (SMTP_USER || '').trim(),
+      pass: (SMTP_PASS || '').replace(/\s+/g, '')
     }
   });
 
