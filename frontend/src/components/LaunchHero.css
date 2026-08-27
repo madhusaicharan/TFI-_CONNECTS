@@ -1,0 +1,123 @@
+.launch-hero-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.launch-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  /* Cinematic slow zoom effect */
+  animation: heroBgMotion 8s ease-out forwards;
+}
+
+.launch-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    #020202 100%
+  );
+  z-index: 1;
+}
+
+.launch-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.launch-logo-container {
+  position: relative;
+  text-align: center;
+  animation: heroZoomIn 2.5s ease-out forwards;
+}
+
+.cinematic-hero-logo {
+  font-size: 6rem;
+  font-family: var(--font-heading);
+  letter-spacing: 0.1em;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+.hero-text-tfi {
+  color: var(--accent-red);
+  text-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+}
+
+.hero-text-connects {
+  color: var(--text-primary);
+  font-weight: 300;
+  text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+.hero-logo-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 100px;
+  background: radial-gradient(ellipse at center, rgba(229,9,20,0.4) 0%, rgba(0,0,0,0) 70%);
+  z-index: 1;
+  filter: blur(25px);
+  animation: heroPulseGlow 2.5s infinite alternate;
+}
+
+@keyframes heroBgMotion {
+  0% {
+    transform: scale(1.0);
+  }
+  100% {
+    transform: scale(1.15); /* Slow zoom in */
+  }
+}
+
+@keyframes heroZoomIn {
+  0% {
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes heroPulseGlow {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .cinematic-hero-logo {
+    font-size: 3.5rem;
+  }
+}

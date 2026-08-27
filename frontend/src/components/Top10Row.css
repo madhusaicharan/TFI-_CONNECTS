@@ -1,0 +1,221 @@
+.top10-section {
+  padding: 10px 4% 40px 4%;
+  margin-top: 36px;
+  margin-bottom: 2vw;
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  user-select: none;
+}
+
+/* Top curved arch line & ambient glow */
+.top10-arch-container {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  margin-bottom: 6px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.top10-arch-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top10-arch-glow {
+  position: absolute;
+  top: 10px;
+  left: 20%;
+  right: 20%;
+  height: 35px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(190, 15, 60, 0.35) 0%, rgba(0, 0, 0, 0) 75%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.top10-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  letter-spacing: 0.2px;
+  font-family: var(--font-heading, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+.top10-carousel-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.top10-track {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px 0 20px 0;
+  scrollbar-width: none;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.top10-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Poster Card */
+.top10-card {
+  position: relative;
+  flex: 0 0 185px;
+  height: 255px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.top10-card:hover {
+  transform: scale(1.05);
+  z-index: 15;
+}
+
+.top10-poster-wrapper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 150px;
+  height: 225px;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  background: #181818;
+}
+
+.top10-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+/* Oversized Rank Number */
+.top10-number-overlay {
+  position: absolute;
+  left: -8px;
+  bottom: -6px;
+  z-index: 5;
+  font-size: 8.5rem;
+  font-weight: 900;
+  font-family: Impact, "Arial Black", "Trebuchet MS", sans-serif;
+  line-height: 0.72;
+  color: #000000;
+  -webkit-text-stroke: 3px #ffffff;
+  letter-spacing: -2px;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.8));
+}
+
+.top10-number-overlay.multi-digit {
+  left: -18px;
+  font-size: 7.2rem;
+  letter-spacing: -6px;
+}
+
+/* Navigation Pill Arrow Buttons */
+.top10-pill-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 32px;
+  height: 90px;
+  background: rgba(20, 20, 20, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.top10-pill-arrow.left {
+  left: 8px;
+}
+
+.top10-pill-arrow.right {
+  right: 8px;
+}
+
+.top10-pill-arrow:hover {
+  background: rgba(45, 45, 45, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.top10-pill-arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+/* Responsive Scaling */
+@media (max-width: 1024px) {
+  .top10-card {
+    flex: 0 0 145px;
+    height: 205px;
+  }
+  .top10-poster-wrapper {
+    width: 115px;
+    height: 205px;
+  }
+  .top10-number-overlay {
+    font-size: 7.2rem;
+    left: -6px;
+    bottom: -4px;
+    -webkit-text-stroke: 2.5px #ffffff;
+  }
+  .top10-number-overlay.multi-digit {
+    font-size: 6rem;
+    left: -14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top10-header-title {
+    font-size: 1.25rem;
+  }
+  .top10-card {
+    flex: 0 0 125px;
+    height: 175px;
+  }
+  .top10-poster-wrapper {
+    width: 100px;
+    height: 175px;
+  }
+  .top10-number-overlay {
+    font-size: 6rem;
+    left: -4px;
+    bottom: -3px;
+    -webkit-text-stroke: 2px #ffffff;
+  }
+  .top10-number-overlay.multi-digit {
+    font-size: 5rem;
+    left: -10px;
+  }
+  .top10-pill-arrow {
+    width: 28px;
+    height: 70px;
+  }
+  .top10-pill-arrow.left { left: -8px; }
+  .top10-pill-arrow.right { right: -8px; }
+}
+

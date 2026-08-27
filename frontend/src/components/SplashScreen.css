@@ -1,0 +1,111 @@
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.splash-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  /* Cinematic slow zoom effect for the motion poster */
+  animation: bgMotion 4s ease-out forwards;
+}
+
+.splash-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65); /* Dark overlay to make logo pop */
+  z-index: 1;
+}
+
+.logo-container {
+  position: relative;
+  text-align: center;
+  animation: zoomIn 2.5s ease-out forwards;
+  z-index: 2;
+}
+
+.cinematic-logo {
+  font-size: 5rem;
+  font-family: var(--font-heading);
+  letter-spacing: 0.1em;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+.text-tfi {
+  color: var(--accent-red);
+  text-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+}
+
+.text-connects {
+  color: var(--text-primary);
+  font-weight: 300;
+  text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+.logo-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 100px;
+  background: radial-gradient(ellipse at center, rgba(229,9,20,0.3) 0%, rgba(0,0,0,0) 70%);
+  z-index: 1;
+  filter: blur(20px);
+  animation: pulseGlow 2s infinite alternate;
+}
+
+@keyframes bgMotion {
+  0% {
+    transform: scale(1.0);
+  }
+  100% {
+    transform: scale(1.15); /* Slow zoom in */
+  }
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulseGlow {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .cinematic-logo {
+    font-size: 3rem;
+  }
+}

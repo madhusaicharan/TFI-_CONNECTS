@@ -1,0 +1,78 @@
+.movies-page {
+  min-height: 100vh;
+  background: #141414;
+  color: white;
+  position: relative;
+}
+
+/* Netflix Sub-header */
+.movies-subheader {
+  padding: 100px 4% 20px 4%;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.subheader-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.genre-dropdown-container {
+  position: relative;
+}
+
+.genre-dropdown {
+  appearance: none;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 30px 8px 15px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.genre-dropdown:hover, .genre-dropdown:focus {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: white;
+}
+
+.genre-dropdown option {
+  background: #141414;
+  color: white;
+}
+
+/* Custom arrow for dropdown */
+.genre-dropdown-container::after {
+  content: '▼';
+  font-size: 0.7rem;
+  color: white;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Rows Adjustment */
+.movies-rows {
+  position: relative;
+  z-index: 10;
+  padding-bottom: 50px;
+}
+
+@media (max-width: 768px) {
+  .movies-subheader {
+    padding-top: 80px;
+    gap: 15px;
+  }
+  
+  .subheader-title {
+    font-size: 1.8rem;
+  }
+}

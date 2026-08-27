@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  # ── Backend (Node.js / Express) ───────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tfi-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      - CORS_ORIGINS=http://localhost:80,http://frontend
+    depends_on:
+      - mongo
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tfi-network
+
+  # ── Frontend (React + Nginx) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5000/api
+    container_name: tfi-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - tfi-network
+
+  # ── MongoDB (for local development) ──────────────────────────────────────
+  # Comment out if using MongoDB Atlas
+  mongo:
+    image: mongo:7
+    container_name: tfi-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - tfi-network
+
+networks:
+  tfi-network:
+    driver: bridge
+
+volumes:
+  mongo-data:

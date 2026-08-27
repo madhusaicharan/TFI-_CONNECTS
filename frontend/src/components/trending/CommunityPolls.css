@@ -1,0 +1,95 @@
+.polls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.poll-error {
+  background: rgba(229, 9, 20, 0.1);
+  color: #e50914;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  text-align: center;
+}
+
+.poll-card {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.poll-question {
+  color: #fff;
+  font-size: 1.25rem;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.poll-option-btn {
+  position: relative;
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poll-option-btn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.poll-option-btn.voted-view {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.poll-option-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(229, 9, 20, 0.2);
+  transition: width 0.5s ease-out;
+  z-index: 1;
+}
+
+.poll-option-text {
+  position: relative;
+  z-index: 2;
+  font-weight: 500;
+}
+
+.poll-option-percent {
+  position: relative;
+  z-index: 2;
+  font-weight: bold;
+  color: #e50914;
+}
+
+.poll-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.voted-badge {
+  color: #4ade80;
+}

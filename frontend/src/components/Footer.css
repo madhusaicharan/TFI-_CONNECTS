@@ -1,0 +1,110 @@
+.asme-footer-container {
+  padding: 40px 4% 0 4%;
+  margin-top: 60px;
+  background: transparent;
+  position: relative;
+  z-index: 10;
+}
+
+.asme-footer-card {
+  background: linear-gradient(180deg, #111111 0%, #070707 100%);
+  border-radius: 24px 24px 0 0;
+  padding: 52px 6% 44px 6%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Header & Logo */
+.asme-footer-top {
+  margin-bottom: 48px;
+}
+
+.asme-hashtag-logo {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 12px;
+  letter-spacing: -1px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.asme-copyright {
+  color: #888888;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+/* Grid Layout */
+.asme-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+}
+
+.asme-col-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 22px 0;
+  letter-spacing: 0.1px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.asme-col-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.asme-col-links a {
+  color: #9c9c9c;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.asme-col-links a:hover {
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.asme-col-links.social svg {
+  color: #b0b0b0;
+  transition: color 0.2s ease;
+}
+
+.asme-col-links.social a:hover svg {
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .asme-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 36px 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .asme-footer-card {
+    padding: 40px 20px 32px 20px;
+    border-radius: 16px 16px 0 0;
+  }
+  .asme-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .asme-hashtag-logo {
+    font-size: 2.2rem;
+  }
+}

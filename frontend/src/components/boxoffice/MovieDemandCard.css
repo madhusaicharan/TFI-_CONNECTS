@@ -1,0 +1,238 @@
+.bms-movie-card {
+  background: #14141d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+}
+
+.bms-movie-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  border-color: rgba(229, 9, 20, 0.4);
+}
+
+.bms-poster-container {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  background: #181818;
+}
+
+.bms-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.bms-movie-card:hover .bms-poster {
+  transform: scale(1.05);
+}
+
+.bms-status-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+
+.bms-status-badge.filling-fast {
+  background: #e50914;
+  color: white;
+}
+
+.bms-status-badge.housefull {
+  background: #f59e0b;
+  color: black;
+}
+
+.bms-status-badge.running-now {
+  background: #10b981;
+  color: white;
+}
+
+.bms-poster-bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.95) 100%);
+  backdrop-filter: blur(4px);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  z-index: 5;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bms-bottom-tag-text {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.2px;
+}
+
+.bms-card-info {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.bms-movie-title {
+  font-size: clamp(16px, 1.25vw, 20px);
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  cursor: pointer;
+  line-height: 1.35;
+  min-height: 2.7em;
+  max-height: 2.7em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+
+.bms-movie-title:hover {
+  color: #e50914;
+}
+
+.bms-format-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.format-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.bms-stats-box {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bms-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.bms-stat-lbl {
+  color: #71717a;
+  font-weight: 500;
+}
+
+.bms-stat-val {
+  font-weight: 700;
+  color: white;
+}
+
+.status-val {
+  color: #f59e0b;
+}
+
+.bms-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bms-book-btn {
+  width: 100%;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.bms-book-btn.bms-red {
+  background: #e50914;
+  color: white;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.35);
+}
+
+.bms-book-btn.bms-red:hover {
+  background: #ff1a25;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(229, 9, 20, 0.55);
+}
+
+.bms-book-btn.district-blue {
+  background: #1e40af;
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35);
+}
+
+.bms-book-btn.district-blue:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.55);
+}
+
+.bms-trends-btn {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e4e4e7;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.bms-trends-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}

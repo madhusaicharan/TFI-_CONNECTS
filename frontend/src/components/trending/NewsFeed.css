@@ -1,0 +1,34 @@
+.news-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.news-card {
+  display: block;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.news-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  border-color: #e50914;
+}
+
+.news-title {
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.news-source {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}

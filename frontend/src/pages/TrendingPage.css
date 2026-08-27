@@ -1,0 +1,70 @@
+.trending-page {
+  min-height: 100vh;
+  background: #141414;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.trending-container {
+  padding: 120px 4% 60px;
+  flex: 1;
+}
+
+.trending-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.trending-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  font-family: var(--font-heading);
+}
+
+.trending-title span {
+  color: #e50914;
+}
+
+.trending-subtitle {
+  color: #999;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.trending-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tab-btn.active {
+  background: #e50914;
+  border-color: #e50914;
+  color: white;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.tab-content {
+  margin-top: 20px;
+}

@@ -1,0 +1,81 @@
+.hourly-chart-container {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.chart-peak {
+  color: #ff4d4d;
+  font-size: 0.8rem;
+  background: rgba(229, 9, 20, 0.15);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.chart-bars-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 140px;
+  gap: 8px;
+  padding-top: 15px;
+}
+
+.chart-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar-val-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ff9999;
+  margin-bottom: 4px;
+}
+
+.bar-track {
+  width: 100%;
+  max-width: 28px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #ff4d4d 0%, #e50914 100%);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.4s ease;
+}
+
+.bar-fill.peak-fill {
+  background: linear-gradient(180deg, #fbbf24 0%, #e50914 100%);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.bar-time-label {
+  font-size: 0.68rem;
+  color: #71717a;
+  margin-top: 6px;
+  font-weight: 600;
+}

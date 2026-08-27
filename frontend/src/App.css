@@ -1,0 +1,23 @@
+.app-container {
+  min-height: 100vh;
+  background: transparent;
+  position: relative;
+}
+
+.home-page {
+  background: transparent;
+}
+
+.global-app-ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background-image: radial-gradient(ellipse at top, rgba(180, 15, 50, 0.25) 0%, rgba(5, 5, 5, 0.95) 75%), url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1600&q=80');
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) brightness(0.32);
+  transform: scale(1.1);
+}
+
+.app-container.hidden { display: none; }

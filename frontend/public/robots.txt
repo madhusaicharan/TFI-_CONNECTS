@@ -1,0 +1,10 @@
+# TFI_CONNECTS robots.txt
+User-agent: *
+Allow: /
+
+# Disallow admin or private routes
+Disallow: /api/
+Disallow: /verify-email
+
+# Sitemap
+Sitemap: https://tfi-connects.vercel.app/sitemap.xml

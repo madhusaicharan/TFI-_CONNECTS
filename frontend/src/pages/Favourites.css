@@ -1,0 +1,149 @@
+.favourites-page {
+  min-height: 100vh;
+  background: #141414;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.favourites-container {
+  padding: 120px 4% 60px;
+  flex: 1;
+}
+
+.favourites-title {
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+
+/* Empty State */
+.empty-favourites {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8vh;
+  text-align: center;
+}
+
+.thug-bitmoji {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 20px rgba(229, 9, 20, 0.4));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+.empty-favourites h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #e5e5e5;
+}
+
+.empty-favourites p {
+  color: #999;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.btn-explore {
+  background: white;
+  color: black;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-explore:hover {
+  background: #e5e5e5;
+}
+
+/* Populated Grid */
+.favourites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.fav-card {
+  position: relative;
+  aspect-ratio: 2/3;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+  transition: transform 0.3s ease;
+}
+
+.fav-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fav-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fav-card:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.85);
+}
+
+.fav-card:hover .fav-overlay {
+  opacity: 1;
+}
+
+.fav-play-icon {
+  background: rgba(0,0,0,0.6);
+  border: 2px solid white;
+  border-radius: 50%;
+  padding: 12px;
+  margin-bottom: 15px;
+  transition: transform 0.2s;
+}
+
+.fav-play-icon:hover {
+  transform: scale(1.1);
+  background: white;
+  color: black;
+}
+
+.fav-title {
+  font-weight: 700;
+  text-align: center;
+  padding: 0 15px;
+  font-size: 1.15rem;
+  line-height: 1.35;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .favourites-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
