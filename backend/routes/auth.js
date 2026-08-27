@@ -28,20 +28,28 @@ const nodemailer = require('nodemailer');
 const crypto     = require('crypto');
 
 // ── Env-var driven config ────────────────────────────────────────────────────
-const {
-  SMTP_HOST     = 'smtp.gmail.com',
-  SMTP_PORT     = '587',
-  SMTP_SECURE   = 'false',          // true = port 465, false = STARTTLS on 587
-  SMTP_USER,                        // your Gmail address or SendGrid API user
-  SMTP_PASS,                        // Gmail App Password or API key
-  EMAIL_FROM    = `"TFI_CONNECTS" <${SMTP_USER}>`,
-  CLIENT_URL    = 'http://localhost:5173'
-} = process.env;
+const rawEmailFrom = process.env.EMAIL_FROM || '';
+const extractedEmail = rawEmailFrom.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+
+const SMTP_HOST   = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT   = process.env.SMTP_PORT || '587';
+const SMTP_SECURE = process.env.SMTP_SECURE || 'false';
+const SMTP_USER   = process.env.SMTP_USER || (extractedEmail ? extractedEmail[1] : null);
+const SMTP_PASS   = process.env.SMTP_PASS;
+const CLIENT_URL  = process.env.CLIENT_URL || 'https://tfi-connects.vercel.app';
+
+// Format EMAIL_FROM cleanly with mandatory angle brackets: "TFI_CONNECTS" <user@gmail.com>
+let EMAIL_FROM = rawEmailFrom;
+if (EMAIL_FROM && !EMAIL_FROM.includes('<') && extractedEmail) {
+  EMAIL_FROM = `"TFI_CONNECTS" <${extractedEmail[1]}>`;
+} else if (!EMAIL_FROM && SMTP_USER) {
+  EMAIL_FROM = `"TFI_CONNECTS" <${SMTP_USER}>`;
+}
 
 function isSmtpConfigured() {
   if (!SMTP_USER || !SMTP_PASS) return false;
   const placeholders = ['your_gmail', 'your_email', 'example', 'placeholder', 'your_6_char', 'your_app_password', 'xxxx'];
-  const lower = (SMTP_USER + SMTP_PASS).toLowerCase();
+  const lower = (SMTP_USER + (SMTP_PASS || '')).toLowerCase();
   return !placeholders.some(p => lower.includes(p));
 }
 
@@ -50,7 +58,7 @@ let _transporterVerified = false;
 
 function createTransporter() {
   if (!isSmtpConfigured()) {
-    console.warn('[emailService] SMTP_USER / SMTP_PASS not set or contain placeholder values — emails will not be sent.');
+    console.warn('[emailService] ⚠️ SMTP_USER or SMTP_PASS missing or placeholder — emails will not be sent.');
     return null;
   }
 
@@ -59,7 +67,7 @@ function createTransporter() {
   _transporterCache = nodemailer.createTransport({
     host:   SMTP_HOST,
     port:   parseInt(SMTP_PORT, 10),
-    secure: SMTP_SECURE === 'true', // false → STARTTLS (recommended for port 587)
+    secure: SMTP_SECURE === 'true', // false → STARTTLS on port 587
     auth: {
       user: SMTP_USER,
       pass: SMTP_PASS
@@ -70,11 +78,11 @@ function createTransporter() {
     _transporterCache.verify()
       .then(() => {
         _transporterVerified = true;
-        console.log('[emailService] ✅ SMTP connection verified successfully.');
+        console.log(`[emailService] ✅ SMTP connection verified successfully for user: ${SMTP_USER}`);
       })
       .catch(err => {
         console.error('[emailService] ⚠️ SMTP verification failed:', err.message);
-        console.error('[emailService] Emails may fail to send. Check your SMTP_USER and SMTP_PASS in .env');
+        console.error('[emailService] Ensure SMTP_PASS is a 16-character Gmail App Password.');
       });
   }
 
