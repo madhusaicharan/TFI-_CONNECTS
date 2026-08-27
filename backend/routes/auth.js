@@ -64,21 +64,28 @@ function createTransporter() {
 
   if (_transporterCache) return _transporterCache;
 
-  _transporterCache = nodemailer.createTransport({
-    host:   SMTP_HOST,
-    port:   parseInt(SMTP_PORT, 10),
-    secure: SMTP_SECURE === 'true', // false → STARTTLS on port 587
-    auth: {
-      user: (SMTP_USER || '').trim(),
-      pass: (SMTP_PASS || '').replace(/\s+/g, '')
-    }
-  });
+  const cleanUser = (SMTP_USER || '').trim();
+  const cleanPass = (SMTP_PASS || '').replace(/\s+/g, '');
+
+  const transportConfig = (SMTP_HOST && SMTP_HOST.includes('gmail'))
+    ? {
+        service: 'gmail',
+        auth: { user: cleanUser, pass: cleanPass }
+      }
+    : {
+        host:   SMTP_HOST,
+        port:   parseInt(SMTP_PORT, 10),
+        secure: SMTP_SECURE === 'true',
+        auth: { user: cleanUser, pass: cleanPass }
+      };
+
+  _transporterCache = nodemailer.createTransport(transportConfig);
 
   if (!_transporterVerified) {
     _transporterCache.verify()
       .then(() => {
         _transporterVerified = true;
-        console.log(`[emailService] ✅ SMTP connection verified successfully for user: ${SMTP_USER}`);
+        console.log(`[emailService] ✅ SMTP connection verified successfully for user: ${cleanUser}`);
       })
       .catch(err => {
         console.error('[emailService] ⚠️ SMTP verification failed:', err.message);
