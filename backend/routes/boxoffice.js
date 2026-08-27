@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const liveCinemaScraper = require('../services/liveCinemaScraper');
+const boxofficeService = require('../services/boxofficeService');
 
 // Low TTL Cache Store (60 seconds)
 let liveCache = null;
@@ -40,19 +41,18 @@ const handleLiveBoxOffice = async (req, res) => {
     res.setHeader('X-Scraped-At', scrapedData.scrapedAt);
     res.setHeader('X-Cache-Status', 'MISS');
 
-    res.json(scrapedData);
+    return res.json(scrapedData);
   } catch (err) {
-    console.error('[BoxOfficeRoute] Upstream Scrape Error:', err.message);
-    
-    // Strict Zero-Mock Policy: Return 502 Bad Gateway if live extraction fails
-    res.setHeader('X-Data-Source', 'UPSTREAM_BLOCKED');
-    return res.status(502).json({
-      success: false,
-      error: '502 Bad Gateway',
-      message: 'Upstream Cinema Portal Scrape Blocked or Unavailable',
-      details: err.message,
-      scrapedAt: new Date().toISOString()
-    });
+    console.warn('[BoxOfficeRoute] Stealth Scrape Unavailable/Blocked:', err.message);
+    console.log('[BoxOfficeRoute] Serving TMDB Live Theatrical Service fallback...');
+
+    try {
+      const fallbackData = await boxofficeService.getLiveStats();
+      res.setHeader('X-Data-Source', 'TMDB_LIVE_THEATRICAL');
+      return res.json(fallbackData);
+    } catch (fallbackErr) {
+      return res.status(500).json({ success: false, message: fallbackErr.message });
+    }
   }
 };
 
