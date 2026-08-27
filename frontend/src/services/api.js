@@ -106,19 +106,6 @@ export const fetchBoxOfficeCities = async () =>
 export const fetchBoxOfficeTicker = async () =>
   safeFetchWithFallback(`${API_URL}/boxoffice/ticker`, null);
 
-export const sendChatMessage = async (message, history = []) => {
-  const res = await fetch(`${API_URL}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, history })
-  });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'An error occurred while processing your AI movie search request.');
-  }
-  return res.json();
-};
-
 export const fetchMoviesByCategory = async (categoryKey) => {
   const mapping = {
     'new-releases': 'new',

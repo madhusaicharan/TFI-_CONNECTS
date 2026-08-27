@@ -19,7 +19,6 @@ const CelebrityPage  = lazy(() => import('./pages/CelebrityPage'));
 const CategoryPage   = lazy(() => import('./pages/CategoryPage'));
 const LoginPage      = lazy(() => import('./pages/LoginPage'));
 const NotFoundPage   = lazy(() => import('./pages/NotFoundPage'));
-import ChatWidget from './components/chat/ChatWidget';
 
 // ── Route-level loading fallback ──────────────────────────────────────────────
 const PageLoader = () => (
@@ -76,7 +75,6 @@ function App() {
                     <Route path="*"              element={<NotFoundPage />} />
                   </Routes>
                 </ErrorBoundary>
-                <ChatWidget />
               </div>
             </Suspense>
           </Router>

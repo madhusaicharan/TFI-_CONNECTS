@@ -9,8 +9,8 @@ let liveCache = null;
 let cacheTimestamp = null;
 const CACHE_TTL_MS = 60 * 1000; // 60 seconds
 
-// GET /api/boxoffice/live - Live Scraped Cinema Feed
-router.get('/live', async (req, res) => {
+// GET /api/boxoffice & GET /api/boxoffice/live - Live Scraped Cinema Feed
+const handleLiveBoxOffice = async (req, res) => {
   const { city = 'hyderabad', language = 'telugu', refresh = 'false' } = req.query;
   const now = Date.now();
   const forceRefresh = refresh === 'true';
@@ -54,7 +54,10 @@ router.get('/live', async (req, res) => {
       scrapedAt: new Date().toISOString()
     });
   }
-});
+};
+
+router.get('/', handleLiveBoxOffice);
+router.get('/live', handleLiveBoxOffice);
 
 // GET /api/boxoffice/movie/:id/trends - Movie details
 router.get('/movie/:id/trends', async (req, res) => {

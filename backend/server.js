@@ -121,7 +121,6 @@ const authRouter = require('./routes/auth');
 const favouritesRouter = require('./routes/favourites');
 const memesRouter = require('./routes/memes');
 const watchlistRouter = require('./routes/watchlist');
-const chatRouter = require('./routes/chat');
 
 app.use('/api/movies', moviesRouter);
 app.use('/api/celebrities', celebritiesRouter);
@@ -131,7 +130,6 @@ app.use('/api/auth', authLimiterStrict, authRouter);
 app.use('/api/favourites', favouritesRouter);
 app.use('/api/memes', memesRouter);
 app.use('/api/watchlist', watchlistRouter);
-app.use('/api/chat', chatRouter);
 
 // ── 404 + Error Handlers (must be last) ──────────────────────────────────────
 app.use(notFound);
