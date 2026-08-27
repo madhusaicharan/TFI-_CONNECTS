@@ -228,12 +228,17 @@ async function sendVerificationEmail(email, name) {
     </div>
   `);
 
-  await transporter.sendMail({
-    from:    EMAIL_FROM,
-    to:      email,
-    subject: `${otp} is your TFI_CONNECTS verification code`,
-    html
-  });
+  try {
+    await transporter.sendMail({
+      from:    EMAIL_FROM,
+      to:      email,
+      subject: `${otp} is your TFI_CONNECTS verification code`,
+      html
+    });
+  } catch (err) {
+    console.error(`[sendVerificationEmail] SMTP send failed for ${email}:`, err.message);
+    console.log(`[sendVerificationEmail] ⚠️ DEV FALLBACK — Verification OTP for ${email}: ${otp}`);
+  }
 
   return otp;
 }
@@ -280,12 +285,16 @@ async function sendLoginAlertEmail(email, name, loginInfo) {
     </div>
   `);
 
-  await transporter.sendMail({
-    from:    EMAIL_FROM,
-    to:      email,
-    subject: 'New login to your TFI_CONNECTS account',
-    html
-  });
+  try {
+    await transporter.sendMail({
+      from:    EMAIL_FROM,
+      to:      email,
+      subject: 'New login to your TFI_CONNECTS account',
+      html
+    });
+  } catch (err) {
+    console.error(`[sendLoginAlertEmail] SMTP send failed for ${email}:`, err.message);
+  }
 }
 
 async function sendPasswordResetEmail(email, name) {
@@ -318,12 +327,17 @@ async function sendPasswordResetEmail(email, name) {
     </div>
   `);
 
-  await transporter.sendMail({
-    from:    EMAIL_FROM,
-    to:      email,
-    subject: `${otp} is your TFI_CONNECTS password reset code`,
-    html
-  });
+  try {
+    await transporter.sendMail({
+      from:    EMAIL_FROM,
+      to:      email,
+      subject: `${otp} is your TFI_CONNECTS password reset code`,
+      html
+    });
+  } catch (err) {
+    console.error(`[sendPasswordResetEmail] SMTP send failed for ${email}:`, err.message);
+    console.log(`[sendPasswordResetEmail] ⚠️ DEV FALLBACK — Reset OTP for ${email}: ${otp}`);
+  }
 
   return otp;
 }
