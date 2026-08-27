@@ -211,7 +211,7 @@ function emailLayout(bodyHtml) {
 async function sendVerificationEmail(email, name) {
   const otp = generateOTP();
   const transporter = createTransporter();
-  if (!transporter) return otp;
+  if (!transporter) return { otp, sent: false };
 
   const html = emailLayout(`
     <h2>Verify Your Account</h2>
@@ -236,18 +236,23 @@ async function sendVerificationEmail(email, name) {
   `);
 
   try {
-    await transporter.sendMail({
+    const sendPromise = transporter.sendMail({
       from:    EMAIL_FROM,
       to:      email,
       subject: `${otp} is your TFI_CONNECTS verification code`,
       html
     });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('SMTP sendMail timed out after 10 seconds')), 10000)
+    );
+    await Promise.race([sendPromise, timeoutPromise]);
+    console.log(`[sendVerificationEmail] ✅ Email sent to ${email}`);
+    return { otp, sent: true };
   } catch (err) {
-    console.error(`[sendVerificationEmail] SMTP send failed for ${email}:`, err.message);
-    console.log(`[sendVerificationEmail] ⚠️ DEV FALLBACK — Verification OTP for ${email}: ${otp}`);
+    console.error(`[sendVerificationEmail] ❌ SMTP failed for ${email}:`, err.message);
+    return { otp, sent: false };
   }
-
-  return otp;
+}
 }
 
 async function sendLoginAlertEmail(email, name, loginInfo) {
@@ -504,18 +509,15 @@ router.post('/register', authLimiter, async (req, res) => {
     const user = await User.create({ name, email: normalizedEmail, password, isVerified: false });
 
     // Generate OTP and try to send email
-    // sendVerificationEmail always returns the OTP even if SMTP is not configured
     let plainOtp = null;
     let emailSent = false;
-    let emailError = null;
 
     try {
-      plainOtp = await sendVerificationEmail(user.email, user.name);
-      emailSent = isSmtpConfigured();
+      const result = await sendVerificationEmail(user.email, user.name);
+      plainOtp = result.otp;
+      emailSent = result.sent;
     } catch (err) {
-      emailError = err.message;
-      console.error('[register] sendVerificationEmail threw:', emailError);
-      // Generate OTP manually as fallback so we can still store it
+      console.error('[register] sendVerificationEmail threw:', err.message);
       plainOtp = generateOTP();
     }
 
@@ -529,15 +531,16 @@ router.post('/register', authLimiter, async (req, res) => {
     const responseBody = {
       message: emailSent
         ? 'Account created! Check your email for a 6-digit verification code.'
-        : 'Account created! SMTP is not configured — email could not be sent. Check server console for the OTP or configure SMTP in .env.',
+        : 'Account created! Email delivery failed — use the code shown below to verify.',
       needsVerification: true,
       email: user.email,
       emailSent
     };
 
-    // In dev mode (no SMTP), log the OTP to the console so the developer can verify
+    // If email was NOT sent, include OTP directly in response so user isn't stuck
     if (!emailSent) {
-      console.log(`[register] ⚠️ DEV MODE — OTP for ${user.email}: ${plainOtp}`);
+      responseBody.devOtp = plainOtp;
+      console.log(`[register] ⚠️ Email failed — OTP for ${user.email}: ${plainOtp}`);
     }
 
     return res.status(201).json(responseBody);
@@ -728,11 +731,13 @@ router.post('/resend-verification', otpLimiter, async (req, res) => {
     }
 
     let plainOtp;
+    let emailSent = false;
     try {
-      plainOtp = await sendVerificationEmail(user.email, user.name);
+      const result = await sendVerificationEmail(user.email, user.name);
+      plainOtp = result.otp;
+      emailSent = result.sent;
     } catch (emailErr) {
       console.error('[resend-verification] Email send failed:', emailErr.message);
-      // Fallback to manual OTP generation in dev mode
       plainOtp = generateOTP();
     }
 
@@ -740,17 +745,18 @@ router.post('/resend-verification', otpLimiter, async (req, res) => {
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    const emailSent = isSmtpConfigured();
-    if (!emailSent) {
-      console.log(`[resend-verification] ⚠️ DEV MODE — OTP for ${user.email}: ${plainOtp}`);
-    }
-
     const response = {
       message: emailSent
-        ? 'A new verification OTP has been sent.'
-        : 'SMTP not configured — OTP logged to server console.',
+        ? 'A new verification OTP has been sent to your email.'
+        : 'Email delivery failed — use the code shown below to verify.',
       emailSent
     };
+
+    if (!emailSent) {
+      response.devOtp = plainOtp;
+      console.log(`[resend-verification] ⚠️ Email failed — OTP for ${user.email}: ${plainOtp}`);
+    }
+
     return res.json(response);
 
   } catch (err) {

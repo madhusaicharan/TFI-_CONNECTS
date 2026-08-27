@@ -299,14 +299,23 @@ const LoginPage = () => {
     setError('');
     try {
       if (mode === 'reset_verify') {
-        await resendResetOtp(email);
-        setResendMsg('A new password reset OTP has been sent to your email.');
+        const result = await resendResetOtp(email);
+        if (result.devOtp) {
+          setResendMsg(`Email delivery failed. Your OTP code is: ${result.devOtp}`);
+          setDigits(result.devOtp.split(''));
+        } else {
+          setResendMsg('A new password reset OTP has been sent to your email.');
+        }
       } else {
-        await resendOtp(email);
-        setResendMsg('A new verification OTP has been sent to your email.');
+        const result = await resendOtp(email);
+        if (result.devOtp) {
+          setResendMsg(`Email delivery failed. Your OTP code is: ${result.devOtp}`);
+          setDigits(result.devOtp.split(''));
+        } else {
+          setResendMsg('A new verification OTP has been sent to your email.');
+        }
       }
       setCooldown(60);
-      setDigits(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } catch (err) {
       setError(err.message || 'Could not resend OTP. Please try again.');
@@ -317,10 +326,11 @@ const LoginPage = () => {
     setResendLoading(true);
     setError('');
     try {
-      await resendOtp(unverifiedEmail);
+      const result = await resendOtp(unverifiedEmail);
       setEmail(unverifiedEmail);
       setMode('verify');
-      navigate(`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`, { replace: true });
+      const otpParam = result.devOtp ? `&devOtp=${result.devOtp}` : '';
+      navigate(`/verify-email?email=${encodeURIComponent(unverifiedEmail)}${otpParam}`, { replace: true });
     } catch (err) {
       setError(err.message || 'Could not resend OTP. Please try again.');
     } finally {
