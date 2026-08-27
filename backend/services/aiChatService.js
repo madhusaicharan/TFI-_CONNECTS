@@ -3,10 +3,10 @@
 const Movie = require('../models/Movie');
 
 /**
- * AI Chat & RAG Retrieval Service for TFI_CONNECTS
+ * AI Chat & RAG Retrieval Service for TFI_CONNECTS (Google Gemini LLM Engine)
  * ─────────────────────────────────────────────────────────────────────────────
  * 1. Retrieve up to 8 matching movies from MongoDB using $text search or top ratings.
- * 2. Send retrieved context + query to Anthropic API (claude-sonnet-5).
+ * 2. Send retrieved context + query to Google Gemini API (gemini-2.5-flash).
  * 3. Enforce strict Zero-Hallucination policy (only recommend context movies).
  */
 
@@ -84,13 +84,13 @@ class AIChatService {
   }
 
   /**
-   * Main Chat Execution using Anthropic API (claude-sonnet-5)
+   * Main Chat Execution using Google Gemini API (gemini-2.5-flash)
    * @param {string} userQuery
    * @param {Array} history - Previous conversation messages [{ role: 'user'|'assistant', content: string }]
    */
   async chatWithAI(userQuery, history = []) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5';
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
     // 1. Retrieve RAG context (Capped at 8 movies)
     const contextMovies = await this.retrieveContext(userQuery);
@@ -112,64 +112,71 @@ CRITICAL OPERATIONAL RULES:
 RETRIEVED MONGODB MOVIE CONTEXT:
 ${contextText}`;
 
-    // Format message history for Anthropic API
-    const formattedMessages = [];
+    // Format message history for Google Gemini API REST endpoint
+    const contents = [];
     if (Array.isArray(history)) {
       history.slice(-6).forEach(msg => {
-        if (msg && (msg.role === 'user' || msg.role === 'assistant') && msg.content) {
-          formattedMessages.push({
-            role: msg.role,
-            content: msg.content
+        if (msg && msg.content) {
+          const role = msg.role === 'assistant' ? 'model' : 'user';
+          contents.push({
+            role: role,
+            parts: [{ text: msg.content }]
           });
         }
       });
     }
 
     // Add current user query
-    formattedMessages.push({
+    contents.push({
       role: 'user',
-      content: userQuery
+      parts: [{ text: userQuery }]
     });
 
-    // 2. Call Anthropic API if key is present
-    if (apiKey && apiKey.trim() !== '' && !apiKey.includes('your_anthropic_api_key')) {
+    // 2. Call Google Gemini API if key is present
+    if (apiKey && apiKey.trim() !== '' && !apiKey.includes('your_gemini_api_key')) {
       try {
-        console.log(`[AIChatService] Invoking Anthropic API (${model})...`);
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        console.log(`[AIChatService] Invoking Google Gemini API (${model})...`);
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        const res = await fetch(geminiUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: model,
-            max_tokens: 500,
-            system: systemPrompt,
-            messages: formattedMessages
+            systemInstruction: {
+              parts: [{ text: systemPrompt }]
+            },
+            contents: contents,
+            generationConfig: {
+              maxOutputTokens: 500,
+              temperature: 0.7
+            }
           })
         });
 
         if (res.ok) {
           const data = await res.json();
-          if (data.content && data.content[0] && data.content[0].text) {
+          const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (responseText && responseText.trim() !== '') {
             return {
-              reply: data.content[0].text,
+              reply: responseText,
               retrievedCount: contextMovies.length,
-              source: 'ANTHROPIC_LLM'
+              source: 'GEMINI_LLM'
             };
           }
         } else {
           const errBody = await res.text();
-          console.warn(`[AIChatService] Anthropic API HTTP ${res.status}:`, errBody);
+          console.warn(`[AIChatService] Gemini API HTTP ${res.status}:`, errBody);
         }
       } catch (apiErr) {
-        console.error('[AIChatService] Anthropic API fetch error:', apiErr.message);
+        console.error('[AIChatService] Gemini API fetch error:', apiErr.message);
       }
     }
 
     // 3. Fallback RAG Engine Response if API key is not configured or rate-limited
-    console.log('[AIChatService] Generating structured RAG context response (local LLM fallback engine)...');
+    console.log('[AIChatService] Generating structured RAG context response (local Gemini fallback engine)...');
     let fallbackReply = `🎬 **TFI_CONNECTS Movie Recommendations for "${userQuery}":**\n\n`;
 
     if (contextMovies.length > 0) {

@@ -155,7 +155,7 @@ npm run dev
 
 - **MongoDB Text Search**: Uses a compound `$text` index covering `title`, `overview`, and `genres` with weighted relevance (`title: 10`, `genres: 5`, `overview: 1`).
 - **Zero-Hallucination Policy**: Context retrieval fetches up to 8 lean movie objects per user query. System prompts strictly constrain the LLM to only recommend verified films present in our database context.
-- **Anthropic API Integration**: Powered by `claude-sonnet-5` via `https://api.anthropic.com/v1/messages`.
+- **Google Gemini API Integration**: Powered by `gemini-2.5-flash` via `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`.
 - **Protected Endpoint**: `POST /api/chat` with strict IP rate limiting (`express-rate-limit`).
 
 ---
