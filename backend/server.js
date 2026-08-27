@@ -48,15 +48,23 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:5173')
   .split(',')
-  .map((o) => o.trim());
+  .map((o) => o.trim().replace(/\/$/, ''));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server (no origin) or whitelisted origins
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      // Allow requests with no origin (like curl, mobile apps, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.trim().replace(/\/$/, '');
+      const isAllowed =
+        ALLOWED_ORIGINS.includes(cleanOrigin) ||
+        cleanOrigin.endsWith('.vercel.app');
+
+      if (isAllowed) {
         callback(null, true);
       } else {
+        console.warn(`[CORS Blocked] Origin not allowed: ${origin}`);
         callback(new Error(`CORS: origin ${origin} not allowed`));
       }
     },
