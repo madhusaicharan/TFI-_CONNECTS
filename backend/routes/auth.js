@@ -67,17 +67,22 @@ function createTransporter() {
   const cleanUser = (SMTP_USER || '').trim();
   const cleanPass = (SMTP_PASS || '').replace(/\s+/g, '');
 
-  const transportConfig = (SMTP_HOST && SMTP_HOST.includes('gmail'))
-    ? {
-        service: 'gmail',
-        auth: { user: cleanUser, pass: cleanPass }
-      }
-    : {
-        host:   SMTP_HOST,
-        port:   parseInt(SMTP_PORT, 10),
-        secure: SMTP_SECURE === 'true',
-        auth: { user: cleanUser, pass: cleanPass }
-      };
+  const isGmail = (SMTP_HOST && SMTP_HOST.includes('gmail'));
+  const portNum = parseInt(SMTP_PORT || (isGmail ? '465' : '587'), 10);
+  const isSecure = SMTP_SECURE === 'true' || portNum === 465;
+
+  const transportConfig = {
+    host:   SMTP_HOST || 'smtp.gmail.com',
+    port:   portNum,
+    secure: isSecure,
+    auth: { user: cleanUser, pass: cleanPass },
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false
+    }
+  };
 
   _transporterCache = nodemailer.createTransport(transportConfig);
 
