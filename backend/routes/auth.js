@@ -54,16 +54,8 @@ function isSmtpConfigured() {
 }
 
 let _transporterCache = null;
-let _transporterVerified = false;
 
-function createTransporter() {
-  if (!isSmtpConfigured()) {
-    console.warn('[emailService] ⚠️ SMTP_USER or SMTP_PASS missing or placeholder — emails will not be sent.');
-    return null;
-  }
-
-  if (_transporterCache) return _transporterCache;
-
+function buildTransportConfig() {
   const cleanUser = (SMTP_USER || '').trim();
   const cleanPass = (SMTP_PASS || '').replace(/\s+/g, '');
 
@@ -71,34 +63,81 @@ function createTransporter() {
   const portNum = parseInt(SMTP_PORT || (isGmail ? '465' : '587'), 10);
   const isSecure = SMTP_SECURE === 'true' || portNum === 465;
 
-  const transportConfig = {
+  console.log(`[emailService] Config: host=${SMTP_HOST}, port=${portNum}, secure=${isSecure}, user=${cleanUser}, passLen=${cleanPass.length}`);
+
+  return {
     host:   SMTP_HOST || 'smtp.gmail.com',
     port:   portNum,
     secure: isSecure,
     auth: { user: cleanUser, pass: cleanPass },
-    connectionTimeout: 10000,
-    greetingTimeout: 5000,
-    socketTimeout: 10000,
+    connectionTimeout: 30000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
     tls: {
       rejectUnauthorized: false
     }
   };
+}
 
-  _transporterCache = nodemailer.createTransport(transportConfig);
-
-  if (!_transporterVerified) {
-    _transporterCache.verify()
-      .then(() => {
-        _transporterVerified = true;
-        console.log(`[emailService] ✅ SMTP connection verified successfully for user: ${cleanUser}`);
-      })
-      .catch(err => {
-        console.error('[emailService] ⚠️ SMTP verification failed:', err.message);
-        console.error('[emailService] Ensure SMTP_PASS is a 16-character Gmail App Password.');
-      });
+function createTransporter(forceNew = false) {
+  if (!isSmtpConfigured()) {
+    console.warn('[emailService] ⚠️ SMTP_USER or SMTP_PASS missing or placeholder — emails will not be sent.');
+    return null;
   }
 
+  if (_transporterCache && !forceNew) return _transporterCache;
+
+  // Close old transporter if forcing new
+  if (_transporterCache && forceNew) {
+    try { _transporterCache.close(); } catch (_) {}
+    _transporterCache = null;
+  }
+
+  _transporterCache = nodemailer.createTransport(buildTransportConfig());
   return _transporterCache;
+}
+
+// Verify SMTP connection on startup (non-blocking)
+(async () => {
+  if (!isSmtpConfigured()) return;
+  try {
+    const t = createTransporter();
+    if (t) {
+      await t.verify();
+      console.log('[emailService] ✅ SMTP connection verified on startup');
+    }
+  } catch (err) {
+    console.error('[emailService] ⚠️ SMTP startup verification failed:', err.message);
+    console.error('[emailService] Ensure SMTP_PASS is a 16-character Gmail App Password.');
+  }
+})();
+
+/**
+ * Send an email with retry logic. On first failure, creates a fresh transporter and retries once.
+ */
+async function sendMailWithRetry(mailOptions) {
+  let transporter = createTransporter();
+  if (!transporter) return { sent: false, error: 'No transporter' };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[emailService] ✅ Email sent to ${mailOptions.to} (messageId: ${info.messageId})`);
+    return { sent: true, messageId: info.messageId };
+  } catch (firstErr) {
+    console.error(`[emailService] ❌ First attempt failed for ${mailOptions.to}: ${firstErr.message}`);
+
+    // Retry with a fresh transporter
+    try {
+      transporter = createTransporter(true);
+      if (!transporter) return { sent: false, error: 'No transporter on retry' };
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[emailService] ✅ Email sent on retry to ${mailOptions.to} (messageId: ${info.messageId})`);
+      return { sent: true, messageId: info.messageId };
+    } catch (retryErr) {
+      console.error(`[emailService] ❌ Retry also failed for ${mailOptions.to}: ${retryErr.message}`);
+      return { sent: false, error: retryErr.message };
+    }
+  }
 }
 
 function generateOTP() {
@@ -240,28 +279,24 @@ async function sendVerificationEmail(email, name) {
     </div>
   `);
 
-  try {
-    const sendPromise = transporter.sendMail({
-      from:    EMAIL_FROM,
-      to:      email,
-      subject: `${otp} is your TFI_CONNECTS verification code`,
-      html
-    });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('SMTP sendMail timed out after 10 seconds')), 10000)
-    );
-    await Promise.race([sendPromise, timeoutPromise]);
-    console.log(`[sendVerificationEmail] ✅ Email sent to ${email}`);
-    return { otp, sent: true };
-  } catch (err) {
-    console.error(`[sendVerificationEmail] ❌ SMTP failed for ${email}:`, err.message);
-    return { otp, sent: false };
+  const result = await sendMailWithRetry({
+    from:    EMAIL_FROM,
+    to:      email,
+    subject: `${otp} is your TFI_CONNECTS verification code`,
+    html
+  });
+
+  if (result.sent) {
+    console.log(`[sendVerificationEmail] ✅ Email delivered to ${email}`);
+  } else {
+    console.error(`[sendVerificationEmail] ❌ Email failed for ${email}: ${result.error}`);
   }
+
+  return { otp, sent: result.sent };
 }
 
 async function sendLoginAlertEmail(email, name, loginInfo) {
-  const transporter = createTransporter();
-  if (!transporter) return;
+  if (!isSmtpConfigured()) return;
 
   const { ip = 'Unknown', time = new Date().toUTCString(), userAgent = 'Unknown browser' } = loginInfo;
 
@@ -301,22 +336,16 @@ async function sendLoginAlertEmail(email, name, loginInfo) {
     </div>
   `);
 
-  try {
-    await transporter.sendMail({
-      from:    EMAIL_FROM,
-      to:      email,
-      subject: 'New login to your TFI_CONNECTS account',
-      html
-    });
-  } catch (err) {
-    console.error(`[sendLoginAlertEmail] SMTP send failed for ${email}:`, err.message);
-  }
+  await sendMailWithRetry({
+    from:    EMAIL_FROM,
+    to:      email,
+    subject: 'New login to your TFI_CONNECTS account',
+    html
+  });
 }
 
 async function sendPasswordResetEmail(email, name) {
   const otp = generateOTP();
-  const transporter = createTransporter();
-  if (!transporter) return otp;
 
   const html = emailLayout(`
     <h2>Reset Your Password</h2>
@@ -343,15 +372,15 @@ async function sendPasswordResetEmail(email, name) {
     </div>
   `);
 
-  try {
-    await transporter.sendMail({
-      from:    EMAIL_FROM,
-      to:      email,
-      subject: `${otp} is your TFI_CONNECTS password reset code`,
-      html
-    });
-  } catch (err) {
-    console.error(`[sendPasswordResetEmail] SMTP send failed for ${email}:`, err.message);
+  const result = await sendMailWithRetry({
+    from:    EMAIL_FROM,
+    to:      email,
+    subject: `${otp} is your TFI_CONNECTS password reset code`,
+    html
+  });
+
+  if (!result.sent) {
+    console.error(`[sendPasswordResetEmail] ❌ Email failed for ${email}: ${result.error}`);
     console.log(`[sendPasswordResetEmail] ⚠️ DEV FALLBACK — Reset OTP for ${email}: ${otp}`);
   }
 
