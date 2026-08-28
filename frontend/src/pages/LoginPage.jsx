@@ -425,8 +425,8 @@ const LoginPage = () => {
           <h1>{titles[mode]}</h1>
           <p className="login-subtitle" style={{ wordBreak: 'break-all', marginBottom: '24px' }}>{subtitles[mode]}</p>
 
-          {/* Unverified account banner */}
-          {unverifiedEmail && (
+          {/* Unverified account banner (only on login mode) */}
+          {!isVerificationMode && unverifiedEmail && (
             <div className="unverified-banner">
               <Mail size={16} style={{ flexShrink: 0 }} />
               <div>
