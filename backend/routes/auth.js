@@ -215,7 +215,12 @@ function generateOTP() {
 }
 
 function hashOTP(plaintext) {
-  return crypto.createHash('sha256').update(plaintext).digest('hex');
+  let val = plaintext;
+  if (typeof val === 'object' && val !== null) {
+    val = val.otp || val.code || String(val);
+  }
+  const str = String(val || '').trim();
+  return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 function emailLayout(bodyHtml) {
@@ -323,8 +328,6 @@ function emailLayout(bodyHtml) {
 
 async function sendVerificationEmail(email, name) {
   const otp = generateOTP();
-  const transporter = createTransporter();
-  if (!transporter) return { otp, sent: false };
 
   const html = emailLayout(`
     <h2>Verify Your Account</h2>
@@ -518,7 +521,7 @@ async function sendOrderConfirmationEmail(email, name, orderDetails) {
     </div>
   `);
 
-  await transporter.sendMail({
+  await sendMailWithRetry({
     from:    EMAIL_FROM,
     to:      email,
     subject: `${bookingType} Confirmed — #${orderId} | TFI_CONNECTS`,
