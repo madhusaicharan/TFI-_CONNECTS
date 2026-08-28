@@ -47,10 +47,12 @@ export const AuthProvider = ({ children }) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Registration failed');
 
-    // Server returns { needsVerification: true, email }
+    // Server returns { needsVerification: true, email, devOtp, emailSent }
     return {
       requiresVerification: true,
-      email: data.email || email
+      email: data.email || email,
+      devOtp: data.devOtp || null,
+      emailSent: data.emailSent
     };
   };
 

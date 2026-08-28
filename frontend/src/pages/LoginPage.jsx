@@ -144,7 +144,7 @@ const LoginPage = () => {
     } catch (err) {
       if (err.needsVerification) {
         setUnverifiedEmail(err.email || email);
-        setError('');
+        setError(err.message || 'Please verify your email before logging in.');
       } else {
         setError(err.message);
       }
@@ -161,10 +161,12 @@ const LoginPage = () => {
       resetState();
       setEmail(result.email);
       setMode('verify');
-      navigate(`/verify-email?email=${encodeURIComponent(result.email)}`, { replace: true });
+      const otpParam = result.devOtp ? `&devOtp=${result.devOtp}` : '';
+      navigate(`/verify-email?email=${encodeURIComponent(result.email)}${otpParam}`, { replace: true });
     } catch (err) {
       if (err.message && err.message.includes('not verified')) {
         setUnverifiedEmail(email);
+        setError(err.message);
       } else {
         throw err;
       }

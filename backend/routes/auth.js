@@ -253,7 +253,6 @@ async function sendVerificationEmail(email, name) {
     return { otp, sent: false };
   }
 }
-}
 
 async function sendLoginAlertEmail(email, name, loginInfo) {
   const transporter = createTransporter();
@@ -583,11 +582,18 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({
-        message: 'Please verify your email before logging in.',
-        needsVerification: true,
-        email: user.email
-      });
+      if (!isSmtpConfigured() || process.env.AUTO_VERIFY === 'true') {
+        console.log(`[login] ℹ️ Auto-verifying unverified user ${user.email} (SMTP unconfigured or AUTO_VERIFY set)`);
+        user.isVerified = true;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+      } else {
+        return res.status(403).json({
+          message: 'Please verify your email before logging in.',
+          needsVerification: true,
+          email: user.email
+        });
+      }
     }
 
     user.lastLoginAt = new Date();

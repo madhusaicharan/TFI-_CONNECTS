@@ -59,7 +59,10 @@ app.use(
       const cleanOrigin = origin.trim().replace(/\/$/, '');
       const isAllowed =
         ALLOWED_ORIGINS.includes(cleanOrigin) ||
-        cleanOrigin.endsWith('.vercel.app');
+        cleanOrigin.endsWith('.vercel.app') ||
+        cleanOrigin.endsWith('.onrender.com') ||
+        cleanOrigin.includes('localhost') ||
+        cleanOrigin.includes('127.0.0.1');
 
       if (isAllowed) {
         callback(null, true);
