@@ -38,13 +38,8 @@ const SMTP_USER   = process.env.SMTP_USER || (extractedEmail ? extractedEmail[1]
 const SMTP_PASS   = process.env.SMTP_PASS;
 const CLIENT_URL  = process.env.CLIENT_URL || 'https://tfi-connects.vercel.app';
 
-// Format EMAIL_FROM cleanly with mandatory angle brackets: "TFI_CONNECTS" <user@gmail.com>
-let EMAIL_FROM = rawEmailFrom;
-if (EMAIL_FROM && !EMAIL_FROM.includes('<') && extractedEmail) {
-  EMAIL_FROM = `"TFI_CONNECTS" <${extractedEmail[1]}>`;
-} else if (!EMAIL_FROM && SMTP_USER) {
-  EMAIL_FROM = `"TFI_CONNECTS" <${SMTP_USER}>`;
-}
+const SENDER_EMAIL = (SMTP_USER || (extractedEmail ? extractedEmail[1] : 'madhusaicharan2003@gmail.com')).trim();
+const EMAIL_FROM = `"TFI_CONNECTS" <${SENDER_EMAIL}>`;
 
 function isSmtpConfigured() {
   if (!SMTP_USER || !SMTP_PASS) return false;
@@ -501,6 +496,33 @@ router.get('/health', (req, res) => {
     smtp: isSmtpConfigured(),
     timestamp: new Date().toISOString()
   });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GET /api/auth/test-smtp  — Direct test email endpoint with detailed diagnostics
+// ═══════════════════════════════════════════════════════════════════════════════
+router.get('/test-smtp', async (req, res) => {
+  const targetEmail = req.query.to || SENDER_EMAIL;
+  try {
+    if (!isSmtpConfigured()) {
+      return res.status(500).json({ success: false, error: 'SMTP is not configured on server.' });
+    }
+    const result = await sendMailWithRetry({
+      from: EMAIL_FROM,
+      to: targetEmail,
+      subject: `TFI_CONNECTS Live Verification Test Code: ${generateOTP()}`,
+      html: `<h2>TFI_CONNECTS Live Verification</h2><p>This is a live email test delivered directly to <strong>${targetEmail}</strong>.</p>`
+    });
+    return res.json({
+      success: result.sent,
+      messageId: result.messageId || null,
+      error: result.error || null,
+      to: targetEmail,
+      from: EMAIL_FROM
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message, stack: err.stack });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
