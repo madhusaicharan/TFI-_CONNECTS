@@ -42,6 +42,7 @@ const SENDER_EMAIL = (SMTP_USER || (extractedEmail ? extractedEmail[1] : 'madhus
 const EMAIL_FROM = `"TFI_CONNECTS" <${SENDER_EMAIL}>`;
 
 function isSmtpConfigured() {
+  if (process.env.RESEND_API_KEY || process.env.BREVO_API_KEY) return true;
   if (!SMTP_USER || !SMTP_PASS) return false;
   const placeholders = ['your_gmail', 'your_email', 'example', 'placeholder', 'your_6_char', 'your_app_password', 'xxxx'];
   const lower = (SMTP_USER + (SMTP_PASS || '')).toLowerCase();
