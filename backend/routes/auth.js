@@ -50,31 +50,44 @@ function isSmtpConfigured() {
 
 let _transporterCache = null;
 
-function buildTransportConfig() {
+function buildTransportConfig(forceDirect = false) {
   const cleanUser = (SMTP_USER || '').trim();
   const cleanPass = (SMTP_PASS || '').replace(/\s+/g, '');
 
-  const isGmail = (SMTP_HOST && SMTP_HOST.includes('gmail'));
-  const portNum = parseInt(SMTP_PORT || (isGmail ? '465' : '587'), 10);
-  const isSecure = SMTP_SECURE === 'true' || portNum === 465;
+  const isGmail = (SMTP_HOST && SMTP_HOST.includes('gmail')) || (cleanUser && cleanUser.includes('@gmail.com'));
 
-  console.log(`[emailService] Config: host=${SMTP_HOST}, port=${portNum}, secure=${isSecure}, user=${cleanUser}, passLen=${cleanPass.length}`);
+  if (isGmail && !forceDirect) {
+    console.log(`[emailService] Using service: 'gmail' for user=${cleanUser}`);
+    return {
+      service: 'gmail',
+      auth: { user: cleanUser, pass: cleanPass },
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
+      tls: { rejectUnauthorized: false }
+    };
+  }
+
+  const portNum = parseInt(process.env.SMTP_PORT || '465', 10);
+  const isSecure = process.env.SMTP_SECURE === 'true' || portNum === 465;
+
+  console.log(`[emailService] Config: host=${SMTP_HOST || 'smtp.gmail.com'}, port=${portNum}, secure=${isSecure}, user=${cleanUser}`);
 
   return {
     host:   SMTP_HOST || 'smtp.gmail.com',
     port:   portNum,
     secure: isSecure,
     auth: { user: cleanUser, pass: cleanPass },
-    connectionTimeout: 30000,
-    greetingTimeout: 15000,
-    socketTimeout: 30000,
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
     tls: {
       rejectUnauthorized: false
     }
   };
 }
 
-function createTransporter(forceNew = false) {
+function createTransporter(forceNew = false, forceDirect = false) {
   if (!isSmtpConfigured()) {
     console.warn('[emailService] ⚠️ SMTP_USER or SMTP_PASS missing or placeholder — emails will not be sent.');
     return null;
@@ -82,13 +95,12 @@ function createTransporter(forceNew = false) {
 
   if (_transporterCache && !forceNew) return _transporterCache;
 
-  // Close old transporter if forcing new
   if (_transporterCache && forceNew) {
     try { _transporterCache.close(); } catch (_) {}
     _transporterCache = null;
   }
 
-  _transporterCache = nodemailer.createTransport(buildTransportConfig());
+  _transporterCache = nodemailer.createTransport(buildTransportConfig(forceDirect));
   return _transporterCache;
 }
 
@@ -121,9 +133,9 @@ async function sendMailWithRetry(mailOptions) {
   } catch (firstErr) {
     console.error(`[emailService] ❌ First attempt failed for ${mailOptions.to}: ${firstErr.message}`);
 
-    // Retry with a fresh transporter
+    // Retry with a fresh direct SSL transporter
     try {
-      transporter = createTransporter(true);
+      transporter = createTransporter(true, true);
       if (!transporter) return { sent: false, error: 'No transporter on retry' };
       const info = await transporter.sendMail(mailOptions);
       console.log(`[emailService] ✅ Email sent on retry to ${mailOptions.to} (messageId: ${info.messageId})`);
