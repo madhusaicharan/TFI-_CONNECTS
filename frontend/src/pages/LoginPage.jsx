@@ -175,13 +175,14 @@ const LoginPage = () => {
 
   const handleForgotPassword = async () => {
     try {
-      await forgotPassword(email);
-      setSuccessMsg('If this email is registered, a reset OTP has been sent. Check your inbox.');
+      const result = await forgotPassword(email);
+      setSuccessMsg(result?.message || 'If this email is registered, a reset OTP has been sent. Check your inbox.');
       setTimeout(() => {
         resetState();
         setMode('reset_verify');
-        navigate(`/verify-email?email=${encodeURIComponent(email)}&mode=reset`, { replace: true });
-      }, 2000);
+        const otpParam = result?.devOtp ? `&devOtp=${result.devOtp}` : '';
+        navigate(`/verify-email?email=${encodeURIComponent(email)}&mode=reset${otpParam}`, { replace: true });
+      }, 1500);
     } catch (err) {
       setError(err.message);
     }

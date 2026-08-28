@@ -119,31 +119,92 @@ function createTransporter(forceNew = false, forceDirect = false) {
   }
 })();
 
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const BREVO_API_KEY  = process.env.BREVO_API_KEY;
+
+async function sendViaHttpApi(mailOptions) {
+  const { to, subject, html } = mailOptions;
+
+  if (RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'TFI_CONNECTS <onboarding@resend.dev>',
+          to: [to],
+          subject,
+          html
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`[httpEmail] ✅ Sent via Resend to ${to} (id: ${data.id})`);
+        return { sent: true, messageId: data.id };
+      }
+      console.error(`[httpEmail] ❌ Resend error:`, data);
+    } catch (err) {
+      console.error(`[httpEmail] ❌ Resend network error:`, err.message);
+    }
+  }
+
+  if (BREVO_API_KEY) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: 'TFI_CONNECTS', email: SENDER_EMAIL },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(`[httpEmail] ✅ Sent via Brevo to ${to} (messageId: ${data.messageId})`);
+        return { sent: true, messageId: data.messageId };
+      }
+      console.error(`[httpEmail] ❌ Brevo error:`, data);
+    } catch (err) {
+      console.error(`[httpEmail] ❌ Brevo network error:`, err.message);
+    }
+  }
+
+  return { sent: false };
+}
+
 /**
- * Send an email with retry logic. On first failure, creates a fresh transporter and retries once.
+ * Send an email with HTTP API priority and fast SMTP fallback.
  */
 async function sendMailWithRetry(mailOptions) {
+  // 1. Try HTTPS API first if configured (100% reliable on Render)
+  if (RESEND_API_KEY || BREVO_API_KEY) {
+    const httpResult = await sendViaHttpApi(mailOptions);
+    if (httpResult.sent) return httpResult;
+  }
+
+  // 2. Try Nodemailer SMTP with 6s timeout
   let transporter = createTransporter();
-  if (!transporter) return { sent: false, error: 'No transporter' };
+  if (!transporter) return { sent: false, error: 'No transporter configured' };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('SMTP timeout after 6s (Render outbound firewall blocked)')), 6000)
+    );
+    const info = await Promise.race([sendPromise, timeoutPromise]);
     console.log(`[emailService] ✅ Email sent to ${mailOptions.to} (messageId: ${info.messageId})`);
     return { sent: true, messageId: info.messageId };
   } catch (firstErr) {
-    console.error(`[emailService] ❌ First attempt failed for ${mailOptions.to}: ${firstErr.message}`);
-
-    // Retry with a fresh direct SSL transporter
-    try {
-      transporter = createTransporter(true, true);
-      if (!transporter) return { sent: false, error: 'No transporter on retry' };
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[emailService] ✅ Email sent on retry to ${mailOptions.to} (messageId: ${info.messageId})`);
-      return { sent: true, messageId: info.messageId };
-    } catch (retryErr) {
-      console.error(`[emailService] ❌ Retry also failed for ${mailOptions.to}: ${retryErr.message}`);
-      return { sent: false, error: retryErr.message };
-    }
+    console.error(`[emailService] ❌ SMTP attempt failed for ${mailOptions.to}: ${firstErr.message}`);
+    return { sent: false, error: firstErr.message };
   }
 }
 
@@ -391,7 +452,7 @@ async function sendPasswordResetEmail(email, name) {
     console.log(`[sendPasswordResetEmail] ⚠️ DEV FALLBACK — Reset OTP for ${email}: ${otp}`);
   }
 
-  return otp;
+  return { otp, sent: result.sent };
 }
 
 async function sendOrderConfirmationEmail(email, name, orderDetails) {
@@ -858,8 +919,11 @@ router.post('/forgot-password', otpLimiter, async (req, res) => {
     }
 
     let plainOtp;
+    let emailSent = false;
     try {
-      plainOtp = await sendPasswordResetEmail(user.email, user.name);
+      const sendResult = await sendPasswordResetEmail(user.email, user.name);
+      plainOtp = sendResult.otp;
+      emailSent = sendResult.sent;
     } catch (emailErr) {
       console.error('[forgot-password] Email send failed:', emailErr.message);
       plainOtp = generateOTP();
@@ -869,17 +933,18 @@ router.post('/forgot-password', otpLimiter, async (req, res) => {
     user.passwordResetExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const emailSent = isSmtpConfigured();
-    if (!emailSent) {
-      console.log(`[forgot-password] ⚠️ DEV MODE — Reset OTP for ${user.email}: ${plainOtp}`);
-    }
-
     const responseBody = {
       message: emailSent
         ? 'If this email is registered, a reset OTP has been sent. Check your inbox.'
-        : 'SMTP not configured — reset OTP logged to server console. Configure SMTP in .env for real emails.',
+        : 'Email delivery failed — use the code shown below to reset password.',
       emailSent
     };
+
+    if (!emailSent) {
+      responseBody.devOtp = plainOtp;
+      console.log(`[forgot-password] ⚠️ Email delivery failed — Reset OTP for ${user.email}: ${plainOtp}`);
+    }
+
     return res.json(responseBody);
 
   } catch (err) {
